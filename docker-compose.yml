@@ -1,7 +1,14 @@
 # Using version 3 to provide play-with-docker badge
 # You can change to version 2 without breaking.
 #version: '2'
-version: '3'
+version: '3.4'
+x-logging:
+  &default-logging
+  options:
+    max-size: '12m'
+    max-file: '5'
+  driver: json-file
+
 services:
   database:
     # Don't upgrade PostgreSQL by simply changing the version number
@@ -70,14 +77,14 @@ services:
       # - For details see the official sequelize docs: http://docs.sequelizejs.com/en/v3/
       - CMD_DB_URL=postgres://hackmd:hackmdpass@database:5432/hackmd
       - CMD_IMAGE_UPLOAD_TYPE=filesystem
-    ports:
+    #ports:
       # Ports that are published to the outside.
       # The latter port is the port inside the container. It should always stay on 3000
       # If you only specify a port it'll published on all interfaces. If you want to use a
       # local reverse proxy, you may want to listen on 127.0.0.1.
       # Example:
       # - "127.0.0.1:3000:3000"
-      - "3000:3000"
+      #- "3000:3000"
     networks:
       backend:
     restart: always
@@ -85,6 +92,24 @@ services:
       - database
     volumes:
       - uploads:/codimd/public/uploads
+    logging: *default-logging
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "3000:443"
+    networks:
+      backend:
+    restart: always
+    depends_on:
+      - app
+    volumes:
+      - ./resources/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    secrets:
+      - ssl.cert
+      - ssl.key
+      - dhparam.pem
+    logging: *default-logging
 
 # Define networks to allow best isolation
 networks:
@@ -96,3 +121,11 @@ volumes:
   # Volume for PostgreSQL/MySQL database
   database:
   uploads:
+
+secrets:
+  ssl.cert:
+    external: true
+  ssl.key:
+    external: true
+  dhparam.pem:
+    external: true
