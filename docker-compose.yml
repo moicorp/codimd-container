@@ -77,6 +77,7 @@ services:
       # - For details see the official sequelize docs: http://docs.sequelizejs.com/en/v3/
       - CMD_DB_URL=postgres://hackmd:hackmdpass@database:5432/hackmd
       - CMD_IMAGE_UPLOAD_TYPE=filesystem
+      - CMD_USECDN=true
     #ports:
       # Ports that are published to the outside.
       # The latter port is the port inside the container. It should always stay on 3000
@@ -124,8 +125,8 @@ volumes:
 
 secrets:
   ssl.cert:
-    external: true
+    file: /usr/local/ssl/sidefeed.com/sidefeed.com.chained.cert
   ssl.key:
-    external: true
+    file: /usr/local/ssl/sidefeed.com/sidefeed.com.key
   dhparam.pem:
-    external: true
+    file: /usr/local/ssl/sidefeed.com/dhparam.pem
